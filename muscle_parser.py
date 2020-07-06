@@ -7,7 +7,7 @@ import numpy as np
 from scipy.spatial.transform import Rotation as R
 from copy import deepcopy
 
-from tendon_routing import configs
+from tendon_routing import configs, reserve
 
 
 def array_to_string(array):
