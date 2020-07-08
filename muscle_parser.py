@@ -157,7 +157,20 @@ def main():
 
         # Add to collection of tendons
         tendon.append(spatial)
-        actuator.append(etree.Element('muscle', name=config.name, tendon=spatial.get('name')))
+
+        # Create muscle element
+        muscle = etree.Element('muscle', name=config.name, tendon=spatial.get('name'))
+
+        # TODO estimate muscle scale in parse_tendon if not given
+        if config.scale is not None:
+            muscle.attrib['scale'] = str(config.scale)
+
+        # Add muscle to actuators
+        actuator.append(muscle)
+
+    option = mjcf.find("option")
+    option.attrib["gravity"] = "0 0 0"
+    option.attrib["viscosity"] = "1"
 
     # Save the model into a new file
     new_file = '/home/aleksi/Workspace/dm_control/dm_control/suite/dog_muscles.xml'
