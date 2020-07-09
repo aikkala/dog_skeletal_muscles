@@ -1,8 +1,6 @@
 from lxml import etree
 from dm_control.utils import xml_tools
-import json
 from stl import mesh
-import os
 import numpy as np
 from scipy.spatial.transform import Rotation as R
 from copy import deepcopy
@@ -73,6 +71,7 @@ def parse_tendon(config, mjcf):
                 divisor.append(divisor[-1]*len(target))
                 branch_start.append(spatial.getchildren()[-1])
 
+                # Go through each branch separately (depth first)
                 for branch in target:
                     # Add the pulley
                     spatial.append(etree.Element('pulley', divisor=f'{divisor[-1]}'))
@@ -132,24 +131,18 @@ def main():
         xml_string = f.read()
     parser = etree.XMLParser(remove_blank_text=True)
     mjcf = etree.XML(xml_string, parser)
-    #model = mujoco_py.load_model_from_path(xml_file)
 
-    # Parse muscle config json file
-#    config_file = 'muscle_configs.json'
-#    with open(config_file) as f:
-#        configs = json.load(f)
-
-    # Remove existing tendons and create new ones
+    # Remove existing tendons
     tendon = mjcf.find('tendon')
     for element in tendon.getchildren():
         element.getparent().remove(element)
 
-    # Remove existing actuators and create muscle actuators instead
+    # Remove existing actuators
     actuator = mjcf.find('actuator')
     for element in actuator.getchildren():
         element.getparent().remove(element)
 
-    # Go through muscles, get site positions, and add them
+    # Go through muscle configs
     for config in configs:
 
         # Get the tendon for this muscle
@@ -161,16 +154,18 @@ def main():
         # Create muscle element
         muscle = etree.Element('muscle', name=config.name, tendon=spatial.get('name'))
 
-        # TODO estimate muscle scale in parse_tendon if not given
+        # TODO estimate muscle scale if not given
         if config.scale is not None:
             muscle.attrib['scale'] = str(config.scale)
 
         # Add muscle to actuators
         actuator.append(muscle)
 
-    option = mjcf.find("option")
-    option.attrib["gravity"] = "0 0 0"
-    option.attrib["viscosity"] = "1"
+    # For testing, set gravity to zero and viscosity to one
+    if False:
+        option = mjcf.find("option")
+        option.attrib["gravity"] = "0 0 0"
+        option.attrib["viscosity"] = "1"
 
     # Save the model into a new file
     new_file = '/home/aleksi/Workspace/dm_control/dm_control/suite/dog_muscles.xml'
