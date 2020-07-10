@@ -1,6 +1,7 @@
 import os
 
 asset_folder = '/home/aleksi/Workspace/dm_control/dm_control/suite/dog_assets/extras'
+extra_sites_folder = '/home/aleksi/Workspace/dog_skeletal_muscles/extra_sites'
 
 
 class Tendon:
@@ -25,7 +26,7 @@ class Site:
         # Get mesh file also
         filename = f'SITE{self.name}.stl'
         if 'extra' in self.name:
-            self.mesh_file = os.path.join(asset_folder, 'extra_sites', filename)
+            self.mesh_file = os.path.join(extra_sites_folder, filename)
         else:
             self.mesh_file = os.path.join(asset_folder, filename)
 
