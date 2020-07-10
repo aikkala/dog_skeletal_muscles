@@ -1,7 +1,7 @@
 import os
 
 asset_folder = '/home/aleksi/Workspace/dm_control/dm_control/suite/dog_assets/extras'
-extra_sites_folder = '/home/aleksi/Workspace/dog_skeletal_muscles/extra_sites'
+extra_sites_folder = 'extra_sites'
 
 
 class Tendon:
