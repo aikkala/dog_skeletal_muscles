@@ -153,6 +153,7 @@ def main():
 
     # Create muscle element
     muscle = etree.Element('muscle', name=config.name, tendon=spatial.get('name'))
+    muscle.attrib["class"] = "muscle"
 
     # TODO estimate muscle scale if not given
     if config.scale is not None:
@@ -160,6 +161,22 @@ def main():
 
     # Add muscle to actuators
     actuator.append(muscle)
+
+  # Delete existing top-level general defaults (dynprm and gainprm set here mess up defaults for muscle actuators even
+  # when dynprm and gainprm are set again in another another lower level class), and set up new defaults for muscle
+  # class
+  general = mjcf.find("default").find("general")
+  if general is not None:
+    general.getparent().remove(general)
+  muscle = mjcf.find("default").find("default[@class='muscle']")
+  if muscle is not None:
+    muscle.append(etree.Element("muscle", ctrllimited="true", ctrlrange="0 1", group="0"))
+  else:
+    muscle = etree.Element("default")
+    muscle.attrib["class"] = "muscle"
+    muscle.append(etree.Element("muscle", ctrllimited="true", ctrlrange="0 1", group="0"))
+    muscle.append(etree.Element("geom", contype="0", conaffinity="0", group="4", rgba="0.5 0 0 1"))
+    mjcf.find("default").append(muscle)
 
   # For testing, set gravity to zero and viscosity to one
   if False:
