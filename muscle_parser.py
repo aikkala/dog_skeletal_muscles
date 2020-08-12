@@ -4,6 +4,7 @@ from stl import mesh
 import numpy as np
 from scipy.spatial.transform import Rotation as R
 from copy import deepcopy
+import os
 
 from tendon_routing import configs, reserve
 
@@ -125,8 +126,11 @@ def parse_tendon(config, mjcf):
 
 def main():
 
-  # Read the model xml file and parse it
-  xml_file = '/home/aleksi/Workspace/dm_control/dm_control/suite/dog.xml'
+  # Get suite directory
+  suite_dir = os.path.join(os.path.dirname(__file__), '../dm_control/dm_control/suite')
+
+  # Read the original dog model xml file and parse it
+  xml_file = os.path.join(suite_dir, 'dog.xml')
   with open(xml_file) as f:
     xml_string = f.read()
   parser = etree.XMLParser(remove_blank_text=True)
@@ -185,7 +189,7 @@ def main():
     option.attrib["viscosity"] = "1"
 
   # Save the model into a new file
-  new_file = '/home/aleksi/Workspace/dm_control/dm_control/suite/dog_muscles.xml'
+  new_file = os.path.join(suite_dir, 'dog_muscles.xml')
   mjcf.getroottree().write(new_file, encoding='utf-8', xml_declaration=False, pretty_print=True)
 
 
