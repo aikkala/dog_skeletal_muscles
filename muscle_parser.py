@@ -5,6 +5,8 @@ import numpy as np
 from scipy.spatial.transform import Rotation as R
 from copy import deepcopy
 import os
+import sys
+import csv
 
 from tendon_routing import configs, reserve
 
@@ -124,7 +126,12 @@ def parse_tendon(config, mjcf):
   return spatial
 
 
-def main():
+def main(scale_file="acsa.csv", global_scale=1.0):
+
+  # Make sure global_scale is a number, and scale_file exists
+  global_scale = float(global_scale)
+  scale_file = os.path.join(os.path.dirname(__file__), 'muscle_scales', scale_file)
+  assert os.path.isfile(scale_file), "Given scale file doesn't exist"
 
   # Get suite directory
   suite_dir = os.path.join(os.path.dirname(__file__), '../dm_control/dm_control/suite')
@@ -146,22 +153,31 @@ def main():
   for element in actuator.getchildren():
     element.getparent().remove(element)
 
+  # Read muscle scale config file
+  scales = dict()
+  with open(scale_file) as f:
+    reader = csv.reader(f, delimiter=' ')
+    for row in reader:
+      scales[row[0]] = float(row[1])
+
   # Go through muscle configs
-  for config in configs:
+  for mtu in configs:
 
     # Get the tendon for this muscle
-    spatial = parse_tendon(config, mjcf)
+    spatial = parse_tendon(mtu, mjcf)
 
     # Add to collection of tendons
     tendon.append(spatial)
 
     # Create muscle element
-    muscle = etree.Element('muscle', name=config.name, tendon=spatial.get('name'))
+    muscle = etree.Element('muscle', name=mtu.name, tendon=spatial.get('name'))
     muscle.attrib["class"] = "muscle"
 
-    # TODO estimate muscle scale if not given
-    if config.scale is not None:
-      muscle.attrib['scale'] = str(config.scale)
+    # Add muscle scale
+    if mtu.name not in scales:
+      print(f"Muscle {mtu.name} is missing scale")
+    else:
+      muscle.attrib['scale'] = str(global_scale*scales[mtu.name])
 
     # Add muscle to actuators
     actuator.append(muscle)
@@ -192,5 +208,5 @@ def main():
   new_file = os.path.join(suite_dir, 'dog_muscles.xml')
   mjcf.getroottree().write(new_file, encoding='utf-8', xml_declaration=False, pretty_print=True)
 
-
-main()
+if __name__ == "__main__":
+    main(*sys.argv[1:])
